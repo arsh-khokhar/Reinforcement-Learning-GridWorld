@@ -1,0 +1,10 @@
+Horizontal=10
+Vertical=9
+Terminal={1={1,5,+10},2={1,6,-10}}
+Boulder={1={3,4},2={6,7}}
+RobotStartState={2,4}
+K=1000
+Episodes=3500
+Discount=0.9
+Noise=0.2
+TransitionCost=-0.1
