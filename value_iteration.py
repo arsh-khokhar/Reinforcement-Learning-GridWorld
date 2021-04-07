@@ -1,4 +1,5 @@
 from enum import Enum
+import random
 
 
 class Action(Enum):
@@ -6,7 +7,7 @@ class Action(Enum):
     east = [0, 1]
     west = [0, -1]
     south = [1, 0]
-    exit_game = [None, None]
+    exit_game = [0, 0]
 
 
 class State:
@@ -43,6 +44,7 @@ class Grid:
         self.episodes = None
         self.discount = None
         self.transition_cost = None
+        self.alpha = None
 
         with open(filename, 'r') as fp:
             lines = fp.readlines()
@@ -90,6 +92,9 @@ class Grid:
             elif attr.lower() == "episodes":
                 self.episodes = int(value.strip())
 
+            elif attr.lower() == "alpha":
+                self.alpha = float(value.strip())
+
             elif attr.lower() == "discount":
                 self.discount = float(value.strip())
 
@@ -112,7 +117,8 @@ class Grid:
         self.max_terminal_val = abs(self.transition_cost)
         for terminal in self.terminals:
             self.states[terminal[0]][terminal[1]].q_values = {
-                Action.exit_game: terminal[2]}
+                Action.exit_game: 0.0}  # terminal[2]}
+            self.states[terminal[0]][terminal[1]].reward = terminal[2]
             self.states[terminal[0]][terminal[1]].is_terminal = True
             if self.max_terminal_val < abs(terminal[2]):
                 self.max_terminal_val = abs(terminal[2])
@@ -139,25 +145,91 @@ class Grid:
                 possible_states[action] = state
         return possible_states
 
+    def get_action_neighbours(self, action):
+        action_neighbours = {Action.north: [Action.west, Action.east],
+                             Action.east: [Action.north, Action.south],
+                             Action.west: [Action.north, Action.south],
+                             Action.south: [Action.west, Action.east],
+                             Action.exit_game: [Action.exit_game]}
+        return action_neighbours[action]
+
     def iterate_value(self, row, col):
         state = self.states[row][col]
         possible_states = self.find_possible_states(row, col)
 
-        action_neighbours = {Action.north: (Action.west, Action.east),
-                             Action.east: (Action.north, Action.south),
-                             Action.west: (Action.north, Action.south),
-                             Action.south: (Action.west, Action.east)}
         for action in state.get_actions():
             summation = 0.0
             summation += (1.0 - self.noise) * \
                 (possible_states[action].reward +
                  self.discount*possible_states[action].value)
 
-            for neighbour in action_neighbours[action]:
+            for neighbour in self.get_action_neighbours(action):
                 summation += (self.noise / 2.0) * (
                     possible_states[neighbour].reward + self.discount*possible_states[neighbour].value)
 
             state.q_values[action] = summation
+
+    def find_max_q_value(self, row, col):
+        state = self.states[row][col]
+        if not state.is_boulder:
+            best_action = None
+            max_q_value = float('-inf')
+            for key in state.q_values:
+                if state.q_values[key] > max_q_value:
+                    max_q_value = state.q_values[key]
+                    best_action = key
+                if self.max_terminal_val < abs(state.q_values[key]):
+                    self.max_terminal_val = abs(state.q_values[key])
+        return max_q_value, best_action
+
+    def update(self, row, col, action, dest_row, dest_col):
+        if row == 0 and col == 2:
+            x = "do nothing" 
+        state = self.states[row][col]
+        dest_state = self.states[dest_row][dest_col]
+
+        sample = dest_state.reward + self.discount * \
+            self.find_max_q_value(dest_row, dest_col)[0]
+
+        state.q_values[action] = (1-self.alpha) * \
+            state.q_values[action] + self.alpha*sample
+
+    def get_policy(self, row, col):
+        possible_states = self.find_possible_states(row, col)
+
+        max_q_value = float('-inf')
+        best_action_state_pairs = []
+        for action, possible_state in possible_states.items():
+            curr_max_q = self.find_max_q_value(
+                possible_state.row, possible_state.col)[0]
+            if curr_max_q > max_q_value:
+                best_action_state_pairs = [(action, possible_state)]
+                max_q_value = curr_max_q
+            elif curr_max_q == max_q_value:
+                best_action_state_pairs.append((action, possible_state))
+
+            best_random = random.choice(best_action_state_pairs)
+            some_rand = random.uniform(0.0, 1.0)
+            if some_rand < self.noise:
+                action_neighbours = self.get_action_neighbours(best_random[0])
+                best_random = (best_random[0], possible_states[random.choice(
+                    action_neighbours)])
+        return best_random
+
+    def q_learn(self):
+        # for i in range(self.episodes):
+        robot_curr_row = self.robot_location[0]
+        robot_curr_col = self.robot_location[1]
+        # curr_state = self.states[robot_curr_row][robot_curr_col]
+        while True:
+            best_action, next_state = self.get_policy(
+                robot_curr_row, robot_curr_col)
+            self.update(robot_curr_row, robot_curr_col,
+                        best_action, next_state.row, next_state.col)
+            robot_curr_row = next_state.row
+            robot_curr_col = next_state.col
+            if best_action == Action.exit_game:
+                break
 
     def update_values(self):
         # updating the values

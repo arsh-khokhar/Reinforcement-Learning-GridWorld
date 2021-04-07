@@ -9,12 +9,13 @@ class GridColours(Enum):
     white = (255, 255, 255)
     grey = (150, 150, 150)
     black = (0, 0, 0)
+    blue = (0, 0, 255)
 
 
 class Visualizer:
     def __init__(self, cell_size: int, num_rows, num_columns) -> None:
         # Initialise screen
-        pygame.display.set_caption('Value iteration Grid world')
+        pygame.display.set_caption('Grid world')
 
         self.num_rows = num_rows
         self.num_cols = num_columns
@@ -186,11 +187,10 @@ class Visualizer:
         pygame.init()
         k = 0
         text_to_show = "VALUES AFTER {} ITERATIONS"
-        to_draw_ptr = self.draw_values
+        to_draw_ptr = self.draw_q_values
+        robot_row = 2
+        robot_col = 0
         while True:
-            if k < 100:
-                k += 1
-                x.iterate_values(0)
             self.clear()
             to_draw_ptr()
             for event in pygame.event.get():
@@ -199,13 +199,46 @@ class Visualizer:
                     sys.exit()
                 if event.type == KEYDOWN:
                     if event.key == K_w:
-                        k += 1
-                        x.iterate_values(0)
+                        action = Action.north
+                        if robot_row - 1 >= 0:
+                            x.update(robot_row, robot_col, action,
+                                     robot_row-1, robot_col)
+                            robot_row -= 1
+
+                    if event.key == K_s:
+                        action = Action.south
+                        if robot_row + 1 < self.num_rows:
+                            x.update(robot_row, robot_col, action,
+                                     robot_row+1, robot_col)
+                            robot_row += 1
+
+                    if event.key == K_d:
+                        action = Action.east
+                        if robot_col + 1 < self.num_cols:
+                            x.update(robot_row, robot_col, action,
+                                     robot_row, robot_col+1)
+                            robot_col += 1
+
+                    if event.key == K_a:
+                        action = Action.west
+                        if robot_col - 1 >= 0:
+                            x.update(robot_row, robot_col, action,
+                                     robot_row, robot_col-1)
+                            robot_col -= 1
+
+                    if event.key == K_e:
+                        action = Action.exit_game
+                        x.update(robot_row, robot_col, action,
+                                 robot_row, robot_col)
+                        robot_row = 2
+                        robot_col = 0
+
                     if event.key == K_SPACE:
                         to_draw_ptr = self.draw_q_values if to_draw_ptr == self.draw_values else self.draw_values
                         text_to_show = "Q-VALUES AFTER {} ITERATIONS" if to_draw_ptr == self.draw_q_values \
                             else "VALUES AFTER {} ITERATIONS"
-
+            pygame.draw.circle(self.grid_rect, GridColours.blue.value,
+                               ((robot_col+0.5)*self.cell_size, (robot_row+0.5)*self.cell_size), 0.125*self.cell_size)
             font = pygame.font.SysFont(
                 'courier new', 50, bold=True)
             iteration_text = font.render(text_to_show.format(
@@ -216,7 +249,6 @@ class Visualizer:
             self.background.blit(
                 self.grid_rect, (self.window_width // 2 - self.grid_width // 2, 50))
             self.background.blit(iteration_text, iteration_rect)
-
             pygame.display.update()
 
 
@@ -224,7 +256,7 @@ if __name__ == '__main__':
     x = Grid()
     x.load_from_file("gridConf_default.txt")
 
-    cell_size = 800 // max(x.grid_size["vertical"], x.grid_size["horizontal"])
+    cell_size = 1000 // max(x.grid_size["vertical"], x.grid_size["horizontal"])
 
     game = Visualizer(
         cell_size, x.grid_size["vertical"], x.grid_size["horizontal"])
