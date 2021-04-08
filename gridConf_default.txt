@@ -8,4 +8,4 @@ Episodes=3500
 alpha=0.5
 Discount=0.9
 Noise=0.2
-TransitionCost=0.0
+TransitionCost=-0.1

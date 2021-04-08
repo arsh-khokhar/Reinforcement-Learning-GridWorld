@@ -188,9 +188,14 @@ class Visualizer:
         k = 0
         text_to_show = "VALUES AFTER {} ITERATIONS"
         to_draw_ptr = self.draw_q_values
-        robot_row = 2
-        robot_col = 0
+        robot_row = -1
+        robot_col = -1
         while True:
+            if k < 5000:
+                k += 1
+                x.q_learn()
+            #robot_row = x.robot_curr_row
+            #robot_col = x.robot_curr_col
             self.clear()
             to_draw_ptr()
             for event in pygame.event.get():
@@ -204,6 +209,13 @@ class Visualizer:
                             x.update(robot_row, robot_col, action,
                                      robot_row-1, robot_col)
                             robot_row -= 1
+                        else:
+                            x.update(robot_row, robot_col, action,
+                                     robot_row, robot_col)
+
+                    if event.key == K_q:
+                        k += 1
+                        x.q_learn()
 
                     if event.key == K_s:
                         action = Action.south
@@ -211,6 +223,9 @@ class Visualizer:
                             x.update(robot_row, robot_col, action,
                                      robot_row+1, robot_col)
                             robot_row += 1
+                        else:
+                            x.update(robot_row, robot_col, action,
+                                     robot_row, robot_col)
 
                     if event.key == K_d:
                         action = Action.east
@@ -218,6 +233,9 @@ class Visualizer:
                             x.update(robot_row, robot_col, action,
                                      robot_row, robot_col+1)
                             robot_col += 1
+                        else:
+                            x.update(robot_row, robot_col, action,
+                                     robot_row, robot_col)
 
                     if event.key == K_a:
                         action = Action.west
@@ -225,7 +243,9 @@ class Visualizer:
                             x.update(robot_row, robot_col, action,
                                      robot_row, robot_col-1)
                             robot_col -= 1
-
+                        else:
+                            x.update(robot_row, robot_col, action,
+                                     robot_row, robot_col)
                     if event.key == K_e:
                         action = Action.exit_game
                         x.update(robot_row, robot_col, action,

@@ -21,6 +21,7 @@ class State:
         self.is_boulder = False
         self.reward = 0.0
         self.best_action = None
+        self.terminal_reward = 0.0
 
     def get_actions(self):
         return self.q_values.keys()
@@ -114,11 +115,11 @@ class Grid:
                 new_row.append(new_state)
             self.states.append(new_row)
 
-        self.max_terminal_val = abs(self.transition_cost)
+        self.max_terminal_val = abs(self.transition_cost)+1e-10
         for terminal in self.terminals:
             self.states[terminal[0]][terminal[1]].q_values = {
-                Action.exit_game: 0.0}  # terminal[2]}
-            self.states[terminal[0]][terminal[1]].reward = terminal[2]
+                Action.exit_game: 0.0}
+            self.states[terminal[0]][terminal[1]].terminal_reward = terminal[2]
             self.states[terminal[0]][terminal[1]].is_terminal = True
             if self.max_terminal_val < abs(terminal[2]):
                 self.max_terminal_val = abs(terminal[2])
@@ -183,14 +184,12 @@ class Grid:
         return max_q_value, best_action
 
     def update(self, row, col, action, dest_row, dest_col):
-        if row == 0 and col == 2:
-            x = "do nothing" 
         state = self.states[row][col]
-        dest_state = self.states[dest_row][dest_col]
-
-        sample = dest_state.reward + self.discount * \
-            self.find_max_q_value(dest_row, dest_col)[0]
-
+        if action == Action.exit_game:
+            sample = state.terminal_reward
+        else:
+            sample = state.reward + self.discount * \
+                self.find_max_q_value(dest_row, dest_col)[0]
         state.q_values[action] = (1-self.alpha) * \
             state.q_values[action] + self.alpha*sample
 
