@@ -194,26 +194,26 @@ class Grid:
             state.q_values[action] + self.alpha*sample
 
     def get_policy(self, row, col):
+        state = self.states[row][col]
         possible_states = self.find_possible_states(row, col)
 
         max_q_value = float('-inf')
-        best_action_state_pairs = []
-        for action, possible_state in possible_states.items():
-            curr_max_q = self.find_max_q_value(
-                possible_state.row, possible_state.col)[0]
-            if curr_max_q > max_q_value:
-                best_action_state_pairs = [(action, possible_state)]
-                max_q_value = curr_max_q
-            elif curr_max_q == max_q_value:
-                best_action_state_pairs.append((action, possible_state))
+        best_actions = []
+        for action, value in state.q_values.items():
+            if value > max_q_value:
+                best_actions = [action]
+                max_q_value = value
+            elif value == max_q_value:
+                best_actions.append(action)
 
-            best_random = random.choice(best_action_state_pairs)
-            some_rand = random.uniform(0.0, 1.0)
-            if some_rand < self.noise:
-                action_neighbours = self.get_action_neighbours(best_random[0])
-                best_random = (best_random[0], possible_states[random.choice(
-                    action_neighbours)])
-        return best_random
+        best_random = random.choice(best_actions)
+        state = possible_states[best_random]
+        some_rand = random.uniform(0.0, 1.0)
+        if some_rand < self.noise:
+            action_neighbours = self.get_action_neighbours(best_random)
+            state = possible_states[random.choice(action_neighbours)]
+
+        return best_random, state
 
     def q_learn(self):
         # for i in range(self.episodes):

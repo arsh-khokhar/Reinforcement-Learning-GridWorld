@@ -276,7 +276,7 @@ if __name__ == '__main__':
     x = Grid()
     x.load_from_file("gridConf_default.txt")
 
-    cell_size = 1000 // max(x.grid_size["vertical"], x.grid_size["horizontal"])
+    cell_size = 600 // max(x.grid_size["vertical"], x.grid_size["horizontal"])
 
     game = Visualizer(
         cell_size, x.grid_size["vertical"], x.grid_size["horizontal"])
