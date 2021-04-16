@@ -33,7 +33,7 @@ class Visualizer:
         is_interactive      Indicates if the visualizer is interactive
     """
 
-    def __init__(self, agent, is_interactive=False) -> None:
+    def __init__(self, agent, is_interactive=False):
         """
         Init function for the Visualizer class
 
@@ -250,7 +250,7 @@ class Visualizer:
         else:
             return "Q-VALUES AFTER {} EPISODES".format(arg_num)
 
-    def display(self, highlight_cell=None, query=None) -> None:
+    def display(self, highlight_cell=None, query=None):
         """
         Display the GUI
 
@@ -317,7 +317,7 @@ class Visualizer:
                                     (robot_row+0.5)*self.cell_size),
                                    0.125*self.cell_size)
             font = pygame.font.SysFont(
-                self.font, 16, bold=True)
+                self.font, self.font_size, bold=True)
             iteration_text = font.render(self.get_text_to_show(
                 self.agent.get_display_index(), to_draw_ptr), True, GridColours.white.value)
             iteration_rect = iteration_text.get_rect()
@@ -331,9 +331,9 @@ class Visualizer:
             param_rect2 = param_text2.get_rect()
 
             param_rect.center = (
-                self.window_width // 2, self.grid_height*1.125+28)
+                self.window_width // 2, self.grid_height*1.125+self.font_size)
             param_rect2.center = (
-                self.window_width // 2, self.grid_height*1.125+56)
+                self.window_width // 2, self.grid_height*1.125+2*self.font_size)
 
             if highlight_cell:
                 highlight_rect = pygame.Rect(
@@ -357,7 +357,7 @@ class Visualizer:
                 query_text_to_show, True, GridColours.blue.value)
             query_rect = query_text.get_rect()
             query_rect.center = (
-                self.window_width // 2, self.grid_height*1.125+84)
+                self.window_width // 2, self.grid_height*1.125+3*self.font_size)
             self.background.blit(query_text, query_rect)
 
             flipped = pygame.transform.flip(self.grid_rect, False, True)

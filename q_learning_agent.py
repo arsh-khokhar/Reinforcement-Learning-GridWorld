@@ -66,20 +66,20 @@ class QLearningAgent:
         :param dest_col: The column of the resulting state
         :return: True if the move was a success, false otherwise
         """
-        move_success = True
         if dest_row >= self.grid.num_rows or dest_row < 0 \
                 or dest_col >= self.grid.num_cols or dest_col < 0 \
                 or self.grid.states[dest_row][dest_col].is_boulder:
             dest_row = row
             dest_col = col
-            move_success = False
         state = self.grid.states[row][col]
         if action not in state.get_actions():
+            # prevent from taking an invalid action
             print("{} is not a valid action for the cell ({},{})".format(
                 action, row, col))
-            return False
+            return
 
         if action == Action.exit_game:
+            # if the only action is exit game, its a terminal state
             sample = state.terminal_reward
             self.grid.robot_curr_location = self.grid.robot_start_location[:]
         else:
@@ -87,10 +87,9 @@ class QLearningAgent:
                 self.find_max_q_value(dest_row, dest_col)[0]
             self.grid.robot_curr_location = [dest_row, dest_col]
 
+        # update the q values
         state.q_values[action] = (1-self.alpha) * \
             state.q_values[action] + self.alpha*sample
-
-        return move_success
 
     def get_policy(self, row, col):
         """
@@ -105,6 +104,7 @@ class QLearningAgent:
         exploration_state = possible_states[exploration_action]
 
         if random.random() < self.noise:
+            # returning exploration poilcy based on noise
             return exploration_action, exploration_state
 
         max_q_value = float('-inf')
@@ -116,6 +116,7 @@ class QLearningAgent:
             elif value == max_q_value:
                 best_actions.append(action)
 
+        # Out of all the best actions, choosing one randomly
         best_random_action = random.choice(best_actions)
         dest_state = possible_states[best_random_action]
 
@@ -127,14 +128,21 @@ class QLearningAgent:
         """
         best_action, next_state = self.get_policy(
             self.grid.robot_curr_location[0], self.grid.robot_curr_location[1])
+        # update q values based on the policy
         self.update(self.grid.robot_curr_location[0], self.grid.robot_curr_location[1],
                     best_action, next_state.row, next_state.col)
+        # update the robot location
         self.grid.robot_curr_location[0] = next_state.row
         self.grid.robot_curr_location[1] = next_state.col
         if best_action == Action.exit_game:
+            # if reached terminal, reset robot location, exit the grid
+            # and mark the episode as done
             self.grid.robot_curr_location = self.grid.robot_start_location[:]
             self.curr_episode += 1
             return
 
     def get_display_index(self):
+        """
+        Getting the index to display in GUI
+        """
         return self.curr_episode

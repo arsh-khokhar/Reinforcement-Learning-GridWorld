@@ -52,6 +52,7 @@ class ValueIterationAgent:
                 (possible_states[action].reward +
                  self.grid.discount * possible_states[action].max_q_value)
 
+            # Take the 'drifting away' in account
             for neighbour in ACTION_NEIGHBOURS[action]:
                 summation += (self.noise / 2.0) * (
                     possible_states[neighbour].reward + self.discount*possible_states[neighbour].max_q_value)
@@ -72,6 +73,8 @@ class ValueIterationAgent:
                         if state.q_values[key] > max_q_value:
                             max_q_value = state.q_values[key]
                             best_action = key
+                    # setting value to be the maximum of q-values
+                    # updating best action accordingly
                     state.max_q_value = max_q_value
                     state.best_action = best_action
 
@@ -79,12 +82,18 @@ class ValueIterationAgent:
         """
         Call various other functions to run through 1 step of value iteration
         """
+        # iterate value for each grid sell
         for i, row in enumerate(self.grid.states):
             for j, state in enumerate(row):
                 if not state.is_boulder:
                     self.iterate_value(i, j)
+
+        # update values of all cells
         self.update_values()
         self.curr_iteration += 1
 
     def get_display_index(self):
+        """
+        Getting the index to display in GUI
+        """
         return self.curr_iteration

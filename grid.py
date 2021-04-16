@@ -200,6 +200,7 @@ class Grid:
                 Action.exit_game: 0.0}
             self.states[terminal[0]][terminal[1]].terminal_reward = terminal[2]
             self.states[terminal[0]][terminal[1]].is_terminal = True
+            # updating the max_termial for GUI colors
             if self.max_terminal_val < abs(terminal[2]):
                 self.max_terminal_val = abs(terminal[2])
 
@@ -217,6 +218,7 @@ class Grid:
     def find_possible_states(self, row, col):
         """
         Find the states the robot can move to from another state
+
         :param row: The row of the state to check
         :param col: The column of the state to check
         :return: A dictionary containing which actions lead to which states
@@ -224,6 +226,7 @@ class Grid:
         state = self.states[row][col]
         possible_states = {}
         for action in state.get_actions():
+            # getting the destination cell corresponding to an action
             dest_row = row + action.value[0]
             dest_col = col + action.value[1]
             if 0 <= dest_row < self.num_rows and \

@@ -18,6 +18,8 @@ import argparse
 
 def load_results(filename: str):
     """
+    Load the results file
+
     :param filename: The name of the results file to load (results.txt)
     :return: Two dictionaries containing representations of the queries the input file
     """
@@ -65,19 +67,20 @@ def main():
     result_file = "results.txt" if not args.results else args.results
 
     if args.interactive_mdp:
+        # Launch an interactive mdp grid with value iteration agent
         mdp_grid = Grid(grid_file)
         interative_mdp_agent = ValueIterationAgent(mdp_grid)
         game = Visualizer(interative_mdp_agent, is_interactive=True)
         game.display()
 
     elif args.interactive_rl:
+        # Launch an interactive reinforcement learning grid with Q-learning agent
         rl_grid = Grid(grid_file)
         interative_rl_agent = QLearningAgent(rl_grid)
         game = Visualizer(interative_rl_agent, is_interactive=True)
         game.display()
 
     else:
-
         mdp_grid = Grid(grid_file)
         rl_grid = Grid(grid_file)
 
@@ -92,6 +95,7 @@ def main():
 
         for i in range(mdp_grid.iterations):
             if i in mdp_queries:
+                # take a 'snapshot' of the agent state for a query
                 result_mdp_grids[i] = deepcopy(value_iter_agent)
             value_iter_agent.iterate_values()
 
@@ -100,17 +104,19 @@ def main():
         while q_learn_agent.curr_episode < q_learn_agent.grid.episodes:
             q_learn_agent.q_learn()
             if q_learn_agent.curr_episode in rl_queries:
+                # take a 'snapshot' of the state for a query
                 result_rl_grids[q_learn_agent.curr_episode] = deepcopy(
                     q_learn_agent)
 
         print("\nQ-Learning done for {} episodes".format(q_learn_agent.grid.episodes))
-
+        # Showing results for the MDP queries
         for episode in mdp_queries:
             for query_data in mdp_queries[episode]:
                 game = Visualizer(result_mdp_grids[episode])
                 game.display(highlight_cell=[
                     query_data['row'], query_data['col']], query=query_data['query'])
 
+        # Showing results for the RL queries
         for episode in rl_queries:
             for query_data in rl_queries[episode]:
                 game = Visualizer(result_rl_grids[episode])
