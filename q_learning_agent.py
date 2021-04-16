@@ -21,6 +21,7 @@ class QLearningAgent:
         max_display_val     TODO: again no idea what this does
         curr_episode        The number of the current episdoe
     """
+
     def __init__(self, input_grid: Grid):
         """
         Init function for the QLearningAgent class
@@ -31,7 +32,7 @@ class QLearningAgent:
         self.discount = input_grid.discount
         self.noise = input_grid.noise
         self.alpha = input_grid.alpha
-        self.max_display_val = input_grid.max_terminal_val
+        self.max_display_val = self.grid.max_terminal_val
         self.curr_episode = 0
 
     def find_max_q_value(self, row, col):
@@ -50,8 +51,8 @@ class QLearningAgent:
                 if state.q_values[key] > max_q_value:
                     max_q_value = state.q_values[key]
                     best_action = key
-                if self.max_display_val < abs(state.q_values[key]):
-                    self.max_display_val = abs(state.q_values[key])
+                # if self.max_display_val < abs(state.q_values[key]):
+                #    self.max_display_val = abs(state.q_values[key])
             return max_q_value, best_action
         return 0.0, None
 
@@ -135,3 +136,6 @@ class QLearningAgent:
             self.grid.robot_curr_location = self.grid.robot_start_location[:]
             self.curr_episode += 1
             return
+
+    def get_display_index(self):
+        return self.curr_episode

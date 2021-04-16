@@ -19,6 +19,7 @@ class ValueIterationAgent:
         noise               The likelihood the robot won't end up where it's going
         max_display_val     TODO: again no idea what this does
     """
+
     def __init__(self, input_grid: Grid):
         """
         Init function for the ValueIterationAgent class
@@ -28,7 +29,8 @@ class ValueIterationAgent:
         self.grid = input_grid
         self.discount = input_grid.discount
         self.noise = input_grid.noise
-        self.max_display_val = input_grid.max_terminal_val
+        self.max_display_val = self.grid.max_terminal_val
+        self.curr_iteration = 0
 
     def iterate_value(self, row, col):
         """
@@ -69,8 +71,8 @@ class ValueIterationAgent:
                         if state.q_values[key] > max_q_value:
                             max_q_value = state.q_values[key]
                             best_action = key
-                        if self.max_display_val < abs(state.q_values[key]):
-                            self.max_display_val = abs(state.q_values[key])
+                        # if self.max_display_val < abs(state.q_values[key]):
+                        #    self.max_display_val = abs(state.q_values[key])
                     state.max_q_value = max_q_value
                     state.best_action = best_action
 
@@ -83,3 +85,7 @@ class ValueIterationAgent:
                 if not state.is_boulder:
                     self.iterate_value(i, j)
         self.update_values()
+        self.curr_iteration += 1
+
+    def get_display_index(self):
+        return self.curr_iteration

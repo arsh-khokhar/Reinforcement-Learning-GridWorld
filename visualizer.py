@@ -9,12 +9,12 @@ class GridColours(Enum):
     white = (255, 255, 255)
     grey = (150, 150, 150)
     black = (0, 0, 0)
-    blue = (0, 0, 255)
+    blue = (0, 125, 255)
 
 
 class Visualizer:
 
-    def __init__(self, cell_size: int, agent, is_interactive=False) -> None:
+    def __init__(self, agent, is_interactive=False) -> None:
         # Initialise screen
         pygame.display.set_caption('Grid world')
         self.is_interactive = is_interactive
@@ -24,26 +24,25 @@ class Visualizer:
         self.num_rows = agent.grid.num_rows
         self.num_cols = agent.grid.num_cols
 
-        self.cell_width = cell_size
-        self.cell_size = cell_size
         self.font = 'courier new'
-        self.font_size = int(self.cell_width // 5)
 
+        pygame.display.init()
+        w, h = pygame.display.Info().current_w*0.65, pygame.display.Info().current_h*0.65
+        self.cell_width = int(w // self.num_cols)
+        self.cell_size = int(h // self.num_rows)
+        self.reset_display_params()
+
+    def reset_display_params(self):
+        self.font_size = int(self.cell_width // 5)
         self.grid_width = self.cell_width * self.num_cols
         self.grid_height = self.cell_size * self.num_rows
-        self.window_width = self.grid_width + 150
-        self.window_height = self.grid_height + 200
-
-        self.background = pygame.display.set_mode(
-            (self.window_width, self.window_height), pygame.RESIZABLE)
-
-        self.grid_rect = pygame.Surface((self.grid_width, self.grid_height))
-
-        self.q_val_grid_rect = pygame.Surface(
+        self.window_width = int(self.grid_width*1.1)
+        self.window_height = int(self.grid_height*1.35)
+        self.grid_rect = pygame.Surface(
             (self.grid_width, self.grid_height))
-
         self.grid_rect.get_rect().center = (self.window_width // 2, 0)
-        self.q_val_grid_rect.get_rect().center = (self.window_width // 2, 0)
+        self.background = pygame.display.set_mode(
+            (self.window_width, self.window_height))
 
     def clear(self):
         self.background.fill(GridColours.black.value)
@@ -122,6 +121,7 @@ class Visualizer:
         font = pygame.font.SysFont(
             self.font, int(self.font_size*0.65), bold=True)
         normalized = int(180*abs(value) / self.agent.max_display_val)
+        normalized = min(max(normalized, 0), 255)
         color = (normalized, 0, 0) if value < 0 else (0, normalized, 0)
         pygame.draw.polygon(
             self.grid_rect, color, points)
@@ -133,73 +133,6 @@ class Visualizer:
         q_val_text = pygame.transform.flip(q_val_text, False, True)
         q_val_rect.center = (centers[0], centers[1])
         self.grid_rect.blit(q_val_text, q_val_rect)
-
-    def draw_q_value_grid(self):
-        for j, row in enumerate(self.agent.grid.states):
-            for i, state in enumerate(row):
-                rect = pygame.Rect(
-                    i*self.cell_width, j*self.cell_size, self.cell_width, self.cell_size)
-
-                if state.is_boulder:
-                    pygame.draw.rect(
-                        self.grid_rect, GridColours.grey.value, rect)
-                    continue
-
-                top_left = (i*self.cell_width, j*self.cell_size)
-                top_right = ((i+1)*self.cell_width, j*self.cell_size)
-                bottom_left = (i*self.cell_width, (j+1)*self.cell_size)
-                bottom_right = ((i+1)*self.cell_width, (j+1)*self.cell_size)
-                mid = ((i + 0.5)*self.cell_width, (j + 0.5)*self.cell_size)
-
-                for q_value_key in state.q_values:
-                    q_value = state.q_values[q_value_key]
-                    text_color = GridColours.white.value if q_value_key == state.best_action \
-                        else GridColours.grey.value
-
-                    if q_value_key == Action.south:
-                        self.draw_q_val_triangle(
-                            [top_left, top_right, mid], q_value,
-                            [mid[0], top_left[1] + self.font_size // 2], text_color)
-
-                    elif q_value_key == Action.east:
-                        self.draw_q_val_triangle(
-                            [top_right, bottom_right, mid], q_value,
-                            [bottom_right[0] - self.font_size, mid[1]], text_color)
-
-                    elif q_value_key == Action.west:
-                        self.draw_q_val_triangle(
-                            [top_left, bottom_left, mid], q_value,
-                            [bottom_left[0] + self.font_size, mid[1]], text_color)
-
-                    if q_value_key == Action.north:
-                        self.draw_q_val_triangle(
-                            [bottom_left, bottom_right, mid], q_value,
-                            [mid[0], bottom_left[1] - self.font_size // 2], text_color)
-
-                    if q_value_key == Action.exit_game:
-                        font = pygame.font.SysFont(
-                            self.font, self.font_size, bold=True)
-                        normalized = int(180*abs(q_value) /
-                                         self.agent.max_display_val)
-                        color = (normalized, 0, 0) if q_value < 0 else (
-                            0, normalized, 0)
-                        q_val_text = font.render('{:.2f}'.format(
-                            q_value), True, GridColours.white.value)
-                        q_val_rect = q_val_text.get_rect()
-                        q_val_rect.center = (mid[0], mid[1])
-                        q_val_text = pygame.transform.flip(
-                            q_val_text, False, True)
-                        pygame.draw.rect(
-                            self.grid_rect, color, rect)
-                        self.grid_rect.blit(q_val_text, q_val_rect)
-                        inner_rect = pygame.Rect(
-                            i*self.cell_width + self.cell_width*0.1, j*self.cell_size + self.cell_size*0.1,
-                            self.cell_width*0.8, self.cell_size*0.8)
-                        pygame.draw.rect(
-                            self.grid_rect, GridColours.white.value, inner_rect, 1)
-
-                pygame.draw.rect(
-                    self.grid_rect, GridColours.white.value, rect, 1)
 
     def draw_q_values(self):
         for j, row in enumerate(self.agent.grid.states):
@@ -220,7 +153,7 @@ class Visualizer:
 
                 for q_value_key in state.q_values:
                     q_value = state.q_values[q_value_key]
-                    text_color = GridColours.white.value if q_value_key == state.best_action \
+                    text_color = GridColours.white.value if q_value_key == state.best_action or not self.value_iter_bool \
                         else GridColours.grey.value
 
                     if q_value_key == Action.south:
@@ -248,6 +181,7 @@ class Visualizer:
                             self.font, self.font_size, bold=True)
                         normalized = int(180*abs(q_value) /
                                          self.agent.max_display_val)
+                        normalized = min(max(normalized, 0), 255)
                         color = (normalized, 0, 0) if q_value < 0 else (
                             0, normalized, 0)
                         q_val_text = font.render('{:.2f}'.format(
@@ -268,9 +202,19 @@ class Visualizer:
                 pygame.draw.rect(
                     self.grid_rect, GridColours.white.value, rect, 1)
 
-    def display(self, snapshot=False) -> None:
+    def get_text_to_show(self, arg_num, func_ptr):
+        if self.value_iter_bool:
+            if func_ptr == self.draw_values:
+                return "VALUES AFTER {} ITERATIONS".format(arg_num)
+            elif func_ptr == self.draw_q_values:
+                return "Q-VALUES AFTER {} ITERATIONS".format(arg_num)
+        elif self.is_interactive:
+            return "INTERACTIVE Q-LEARNING"
+        else:
+            return "Q-VALUES AFTER {} EPISODES".format(arg_num)
+
+    def display(self, highlight_cell=None, query=None) -> None:
         pygame.init()
-        text_to_show = "VALUES AFTER {} ITERATIONS" if self.value_iter_bool else "Q-VALUES AFTER {} EPISODES"
         param_str = "Discount: {} Transition cost: {}".format(
             self.agent.grid.discount, self.agent.grid.transition_cost)
         param_str2 = "Noise: {}".format(self.agent.grid.noise)
@@ -285,90 +229,98 @@ class Visualizer:
             to_draw_ptr()
             for event in pygame.event.get():
                 if event.type == QUIT:
+                    pygame.display.quit()
                     pygame.quit()
                     return
 
-                if event.type == pygame.VIDEORESIZE:
-                    # There's some code to add back window content here.
-                    self.background = pygame.display.set_mode((event.w, event.h),
-                                                              pygame.RESIZABLE)
-                    self.cell_size = self.cell_size*event.h / self.window_height
-                    self.cell_width = self.cell_width*event.w / self.window_width
-                    self.grid_width = self.cell_width * self.num_cols
-                    self.grid_height = self.cell_size * self.num_rows
-                    self.window_width = self.grid_width + 150
-                    self.window_height = self.grid_height + 150
-                    self.grid_rect = pygame.Surface(
-                        (self.grid_width, self.grid_height))
-                    self.grid_rect.get_rect().center = (self.window_width // 2, 0)
-                    self.font_size = int(self.cell_width // 5)
-
-                if event.type == KEYDOWN and self.is_interactive:
-                    if event.key == K_w and not self.value_iter_bool:
+                if event.type == KEYDOWN:
+                    if event.key == K_w and self.is_interactive and not self.value_iter_bool:
                         action = Action.north
                         self.agent.update(robot_row, robot_col, action,
                                           robot_row + 1, robot_col)
 
-                    if event.key == K_s and not self.value_iter_bool:
+                    if event.key == K_s and self.is_interactive and not self.value_iter_bool:
                         action = Action.south
                         self.agent.update(robot_row, robot_col, action,
                                           robot_row - 1, robot_col)
 
-                    if event.key == K_d and not self.value_iter_bool:
+                    if event.key == K_d and self.is_interactive and not self.value_iter_bool:
                         action = Action.east
                         self.agent.update(robot_row, robot_col, action,
                                           robot_row, robot_col + 1)
 
-                    if event.key == K_a and not self.value_iter_bool:
+                    if event.key == K_a and self.is_interactive and not self.value_iter_bool:
                         action = Action.west
                         self.agent.update(robot_row, robot_col, action,
                                           robot_row, robot_col-1)
 
-                    if event.key == K_e and not self.value_iter_bool:
+                    if event.key == K_e and self.is_interactive and not self.value_iter_bool:
                         action = Action.exit_game
                         self.agent.update(robot_row, robot_col, action,
                                           robot_row, robot_col)
 
-                    if event.key == K_v and self.value_iter_bool:
-                        k += 1
-                        self.agent.iterate_values(0)
+                    if event.key == K_v and self.is_interactive and self.value_iter_bool:
+                        self.agent.iterate_values()
 
                     if event.key == K_q and not self.value_iter_bool:
-                        k += 1
                         self.agent.q_learn()
 
                     if event.key == K_SPACE and self.value_iter_bool:
                         to_draw_ptr = self.draw_q_values if to_draw_ptr == self.draw_values else self.draw_values
-                        text_to_show = "Q-VALUES AFTER {} ITERATIONS" if to_draw_ptr == self.draw_q_values \
-                            else "VALUES AFTER {} ITERATIONS"
 
-            if not self.value_iter_bool:
+            if not self.value_iter_bool and self.is_interactive:
                 pygame.draw.circle(self.grid_rect, GridColours.blue.value,
                                    ((robot_col+0.5)*self.cell_width,
                                     (robot_row+0.5)*self.cell_size),
                                    0.125*self.cell_size)
             font = pygame.font.SysFont(
                 self.font, 28, bold=True)
-            iteration_text = font.render(text_to_show.format(
-                self.agent.grid.k), True, GridColours.white.value)
+            iteration_text = font.render(self.get_text_to_show(
+                self.agent.get_display_index(), to_draw_ptr), True, GridColours.white.value)
             iteration_rect = iteration_text.get_rect()
             iteration_rect.center = (
-                self.window_width // 2, self.window_height - 90)
+                self.window_width // 2, self.grid_height*1.125)
 
             param_text = font.render(param_str, True, GridColours.white.value)
             param_text2 = font.render(
                 param_str2, True, GridColours.white.value)
             param_rect = param_text.get_rect()
             param_rect2 = param_text2.get_rect()
+
             param_rect.center = (
-                self.window_width // 2, self.window_height - 90 + 30)
+                self.window_width // 2, self.grid_height*1.125+28)
             param_rect2.center = (
-                self.window_width // 2, self.window_height - 90 + 60)
+                self.window_width // 2, self.grid_height*1.125+56)
+
+            if highlight_cell:
+                highlight_rect = pygame.Rect(
+                    highlight_cell[1] *
+                    self.cell_width, highlight_cell[0]*self.cell_size,
+                    self.cell_width, self.cell_size)
+                pygame.draw.rect(
+                    self.grid_rect, GridColours.blue.value, highlight_rect, 4)
+
+            if query:
+                query_text_to_show = "Query: {},{},{}".format(
+                    highlight_cell[0], highlight_cell[1], query)
+
+            elif self.is_interactive:
+                if self.value_iter_bool:
+                    query_text_to_show = "Controls: V: iterate values, SPACE: toggle Values and Q-Values"
+                else:
+                    query_text_to_show = "W: move up, S: move down, A: move left, D: move right, E: take exit action"
+
+            query_text = font.render(
+                query_text_to_show, True, GridColours.blue.value)
+            query_rect = query_text.get_rect()
+            query_rect.center = (
+                self.window_width // 2, self.grid_height*1.125+84)
+            self.background.blit(query_text, query_rect)
+
             flipped = pygame.transform.flip(self.grid_rect, False, True)
 
             self.background.blit(
                 flipped, (self.window_width // 2 - self.grid_width // 2, 50))
-
             self.background.blit(iteration_text, iteration_rect)
             self.background.blit(param_text, param_rect)
             self.background.blit(param_text2, param_rect2)

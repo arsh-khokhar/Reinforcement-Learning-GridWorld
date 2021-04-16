@@ -3,7 +3,6 @@
     Author: Arsh Khokhar, Kiernan Wiese
     Date last modified: 15 April, 2021
     Python Version: 3.8
-
     This script contains the grid and state classes used to keep track of
     values for both q learning and value iteration as those algorithms run.
 """
@@ -44,10 +43,10 @@ class State:
         terminal_reward     The reward for exiting the game from this state
                             (non-zero only if is_terminal is true)
     """
+
     def __init__(self, row, col):
         """
         Constructor of a state
-
         :param row: The row the state is located at
         :param col: The column the state is located at
         """
@@ -89,19 +88,18 @@ class Grid:
         boulders                Locations of all boulder states
         robot_start_location    Start location of the robot
         robot_curr_location     Current location of the robot
-        k                       Number of times to do value iteration
+        iterations              Number of times to do value iteration
         episodes                Number of episodes to do q learning on
         discount                Discount value for learning
         transition_cost         Cost for trasitioning between states
         alpha                   Value of alpha
         states                  Multidimensional array of state objects, that
                                 represent the grid.
-        max_terminal_val        TODO: arsh what does this do
     """
+
     def __init__(self, filename):
         """
         Init the grid class from a file
-
         :param filename: The name of the file to load the grid from (gridConf.txt)
         """
         self.num_rows = 0
@@ -110,7 +108,7 @@ class Grid:
         self.boulders = []
         self.robot_start_location = [None, None]
         self.robot_curr_location = [None, None]
-        self.k = None
+        self.iterations = None
         self.episodes = None
         self.discount = None
         self.transition_cost = None
@@ -164,7 +162,7 @@ class Grid:
                     int(unpacked[0]), int(unpacked[1])]
 
             elif attr.lower() == "k":
-                self.k = int(value.strip())
+                self.iterations = int(value.strip())
 
             elif attr.lower() == "episodes":
                 self.episodes = int(value.strip())
@@ -189,7 +187,6 @@ class Grid:
                 new_row.append(new_state)
             self.states.append(new_row)
 
-        self.max_terminal_val = abs(self.transition_cost)+1e-10
         for terminal in self.terminals:
             self.states[terminal[0]][terminal[1]].q_values = {
                 Action.exit_game: 0.0}
@@ -212,7 +209,6 @@ class Grid:
     def find_possible_states(self, row, col):
         """
         Find the states the robot can move to from another state
-
         :param row: The row of the state to check
         :param col: The column of the state to check
         :return: A dictionary containing which actions lead to which states

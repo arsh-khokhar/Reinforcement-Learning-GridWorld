@@ -5,7 +5,7 @@ Boulder={1={1,1}}
 RobotStartState={0,0}
 K=1000
 Episodes=3500
-alpha=0.1
+alpha=0.5
 Discount=0.9
 Noise=0.2
 TransitionCost=0

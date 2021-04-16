@@ -13,6 +13,7 @@ from visualizer import Visualizer
 from value_iteration_agent import ValueIterationAgent
 from q_learning_agent import QLearningAgent
 from copy import deepcopy
+import argparse
 
 
 def load_results(filename: str):
@@ -44,44 +45,77 @@ def load_results(filename: str):
 
 
 def main():
-    file_name = "gridConf.txt"
-    mdp_grid = Grid(file_name)
-    rl_grid = Grid(file_name)
+    parser = argparse.ArgumentParser(description='Grid world')
 
-    result_mdp_grids = {}
-    result_rl_grids = {}
+    parser.add_argument('--interactive_rl',
+                        help='Launch interative reinforcement learning grid', default=False, action="store_true")
 
-    mdp_queries, rl_queries = load_results("results.txt")
+    parser.add_argument('--interactive_mdp',
+                        help='Launch interative MDP grid', default=False, action="store_true")
 
-    value_iter_agent = ValueIterationAgent(mdp_grid)
+    parser.add_argument(
+        '--grid', help='Use a custom grid file', type=str)
 
-    q_learn_agent = QLearningAgent(rl_grid)
+    parser.add_argument(
+        '--results', help='Use a custom result file', type=str)
 
-    cell_size = 600 // max(mdp_grid.num_rows, mdp_grid.num_cols)
+    args = parser.parse_args()
 
-    for i in range(mdp_grid.k):
-        value_iter_agent.iterate_values()
-        if i in mdp_queries:
-            result_mdp_grids[i] = deepcopy(value_iter_agent)
+    grid_file = "gridConf.txt" if not args.grid else args.grid
+    result_file = "results.txt" if not args.results else args.results
 
-    print("value iter done")
+    if args.interactive_mdp:
+        mdp_grid = Grid(grid_file)
+        interative_mdp_agent = ValueIterationAgent(mdp_grid)
+        game = Visualizer(interative_mdp_agent, is_interactive=True)
+        game.display()
 
-    while q_learn_agent.curr_episode < 3500:
-        q_learn_agent.q_learn()
-        if q_learn_agent.curr_episode in rl_queries:
-            result_rl_grids[q_learn_agent.curr_episode] = deepcopy(q_learn_agent)
+    elif args.interactive_rl:
+        rl_grid = Grid(grid_file)
+        interative_rl_agent = QLearningAgent(rl_grid)
+        game = Visualizer(interative_rl_agent, is_interactive=True)
+        game.display()
 
-    print("q learning done")
+    else:
 
-    for episode in mdp_queries:
-        for row, col, query in mdp_queries[episode]:
-            game = Visualizer(cell_size, result_mdp_grids[episode])
-            game.display()
+        mdp_grid = Grid(grid_file)
+        rl_grid = Grid(grid_file)
 
-    for episode in rl_queries:
-        for row, col, query in rl_queries[episode]:
-            game = Visualizer(cell_size, result_rl_grids[episode])
-            game.display()
+        result_mdp_grids = {}
+        result_rl_grids = {}
+
+        mdp_queries, rl_queries = load_results(result_file)
+
+        value_iter_agent = ValueIterationAgent(mdp_grid)
+
+        q_learn_agent = QLearningAgent(rl_grid)
+
+        for i in range(mdp_grid.iterations):
+            if i in mdp_queries:
+                result_mdp_grids[i] = deepcopy(value_iter_agent)
+            value_iter_agent.iterate_values()
+
+        print("\nValue iteration done for {} iterations".format(mdp_grid.iterations))
+
+        while q_learn_agent.curr_episode < q_learn_agent.grid.episodes:
+            q_learn_agent.q_learn()
+            if q_learn_agent.curr_episode in rl_queries:
+                result_rl_grids[q_learn_agent.curr_episode] = deepcopy(
+                    q_learn_agent)
+
+        print("\nQ-Learning done for {} episodes".format(q_learn_agent.grid.episodes))
+
+        for episode in mdp_queries:
+            for query_data in mdp_queries[episode]:
+                game = Visualizer(result_mdp_grids[episode])
+                game.display(highlight_cell=[
+                    query_data['row'], query_data['col']], query=query_data['query'])
+
+        for episode in rl_queries:
+            for query_data in rl_queries[episode]:
+                game = Visualizer(result_rl_grids[episode])
+                game.display(highlight_cell=[
+                    query_data['row'], query_data['col']], query=query_data['query'])
 
 
 if __name__ == '__main__':
