@@ -20,7 +20,7 @@ class QLearningAgent:
         alpha               The discount alpha
         max_display_val     keeps track of the maximum terminal value for 
                             darker/lighter GUI colors
-        curr_episode        The number of the current episdoe
+        curr_episode        The number of the current episode
     """
 
     def __init__(self, input_grid: Grid):

@@ -69,15 +69,15 @@ def main():
     if args.interactive_mdp:
         # Launch an interactive mdp grid with value iteration agent
         mdp_grid = Grid(grid_file)
-        interative_mdp_agent = ValueIterationAgent(mdp_grid)
-        game = Visualizer(interative_mdp_agent, is_interactive=True)
+        interactive_mdp_agent = ValueIterationAgent(mdp_grid)
+        game = Visualizer(interactive_mdp_agent, is_interactive=True)
         game.display()
 
     elif args.interactive_rl:
         # Launch an interactive reinforcement learning grid with Q-learning agent
         rl_grid = Grid(grid_file)
-        interative_rl_agent = QLearningAgent(rl_grid)
-        game = Visualizer(interative_rl_agent, is_interactive=True)
+        interactive_rl_agent = QLearningAgent(rl_grid)
+        game = Visualizer(interactive_rl_agent, is_interactive=True)
         game.display()
 
     else:
