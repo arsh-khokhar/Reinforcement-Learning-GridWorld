@@ -40,7 +40,7 @@ file_name = "gridConf.txt"
 mdp_grid.load_from_file(file_name)
 rl_grid.load_from_file(file_name)
 
-mdp_test, rl_test = load_results("results.txt")
+mdp_queries, rl_queries = load_results("results.txt")
 
 value_iter_agent = ValueIterationAgent(mdp_grid)
 
@@ -50,26 +50,32 @@ cell_size = 600 // max(mdp_grid.num_rows, mdp_grid.num_cols)
 
 for i in range(mdp_grid.k):
     value_iter_agent.iterate_values(0)
-    if i in mdp_test:
+    if i in mdp_queries:
         result_mdp_grids[i] = deepcopy(value_iter_agent)
 
 print("value iter done")
 
 while q_learn_agent.episodes < 3500:
     q_learn_agent.q_learn()
-    if q_learn_agent.episodes in rl_test:
-        result_rl_grids[i] = deepcopy(q_learn_agent)
+    if q_learn_agent.episodes in rl_queries:
+        result_rl_grids[q_learn_agent.episodes] = deepcopy(q_learn_agent)
 
 
 print("q learning done")
 
 
-for result in result_mdp_grids:
-    print(result)
-    result_mdp_grids[result].grid.print_states()
+for episode in mdp_queries:
+    for row, col, query in mdp_queries[episode]:
+        game = Visualizer(cell_size, result_mdp_grids[episode])
+        game.display()
 
-    # game = Visualizer(cell_size, result_mdp_grids[result])
-    # game.display()
+for episode in rl_queries:
+    for row, col, query in rl_queries[episode]:
+        game = Visualizer(cell_size, result_rl_grids[episode])
+        game.display()
+
+
+
 
 # game = Visualizer(
 #     cell_size, value_iter_agent)
