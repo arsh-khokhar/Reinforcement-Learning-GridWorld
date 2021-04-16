@@ -133,7 +133,10 @@ class Grid:
                 self.num_cols = int(value.strip())
 
             elif attr.lower() == "terminal":
-                value = value.strip()[1:-1]
+                value = value.strip()
+                if not value.endswith('}}\n'):
+                    value = value + '}'
+                value = value[1:-1]
                 while len(value) > 0:
                     start_index = value.find('{', 1)
                     end_index = value.find('}') + 1
@@ -145,7 +148,10 @@ class Grid:
                     value = value[end_index + 1:]
 
             elif attr.lower() == "boulder":
-                value = value.strip()[1:-1]
+                value = value.strip()
+                if not value.endswith('}}\n'):
+                    value = value + '}'
+                value = value[1:-1]
                 while len(value) > 0:
                     start_index = value.find('{', 1)
                     end_index = value.find('}') + 1
