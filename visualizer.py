@@ -1,10 +1,8 @@
 import pygame
-import sys
 from enum import Enum
 from pygame.locals import *
-from grid import Grid, Action
+from grid import Action
 from value_iteration_agent import ValueIterationAgent
-from q_learning_agent import QLearningAgent
 
 
 class GridColours(Enum):
@@ -58,8 +56,8 @@ class Visualizer:
             for i, state in enumerate(row):
                 rect = pygame.Rect(
                     i*self.cell_width, j*self.cell_size, self.cell_width, self.cell_size)
-                color = (int(180*abs(state.value) / self.agent.max_display_val), 0,
-                         0) if state.value < 0 else (0, int(180*abs(state.value) / self.agent.max_display_val), 0)
+                color = (int(180 * abs(state.max_q_value) / self.agent.max_display_val), 0,
+                         0) if state.max_q_value < 0 else (0, int(180 * abs(state.max_q_value) / self.agent.max_display_val), 0)
                 pygame.draw.rect(self.grid_rect, color, rect)
                 pygame.draw.rect(
                     self.grid_rect, GridColours.white.value, rect, 1)
@@ -77,7 +75,7 @@ class Visualizer:
                     pygame.draw.rect(
                         self.grid_rect, GridColours.white.value, inner_rect, 1)
 
-                value_text = font.render('{:.2f}'.format(state.value),
+                value_text = font.render('{:.2f}'.format(state.max_q_value),
                                          True, GridColours.white.value)
                 value_rect = value_text.get_rect()
                 value_rect.center = (i*self.cell_width + self.cell_width // 2,

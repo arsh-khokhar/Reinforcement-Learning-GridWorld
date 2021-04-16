@@ -1,3 +1,13 @@
+"""
+    File name: main.py
+    Author: Arsh Khokhar, Kiernan Wiese
+    Date last modified: 15 April, 2021
+    Python Version: 3.8
+
+    This script contains the main function that calls both of the agent
+    scripts to do either value iteration or q learning based on data it reads
+    from gridConf.txt and results.txt.
+"""
 from grid import Grid
 from visualizer import Visualizer
 from value_iteration_agent import ValueIterationAgent
@@ -5,7 +15,11 @@ from q_learning_agent import QLearningAgent
 from copy import deepcopy
 
 
-def load_results(filename):
+def load_results(filename: str):
+    """
+    :param filename: The name of the results file to load (results.txt)
+    :return: Two dictionaries containing representations of the queries the input file
+    """
     mdp_results = {}
     rl_results = {}
     with open(filename, 'r') as fp:
@@ -29,61 +43,46 @@ def load_results(filename):
     return mdp_results, rl_results
 
 
-mdp_grid = Grid()
-rl_grid = Grid()
+def main():
+    file_name = "gridConf.txt"
+    mdp_grid = Grid(file_name)
+    rl_grid = Grid(file_name)
 
-result_mdp_grids = {}
-result_rl_grids = {}
+    result_mdp_grids = {}
+    result_rl_grids = {}
 
-file_name = "gridConf.txt"
+    mdp_queries, rl_queries = load_results("results.txt")
 
-mdp_grid.load_from_file(file_name)
-rl_grid.load_from_file(file_name)
+    value_iter_agent = ValueIterationAgent(mdp_grid)
 
-mdp_queries, rl_queries = load_results("results.txt")
+    q_learn_agent = QLearningAgent(rl_grid)
 
-value_iter_agent = ValueIterationAgent(mdp_grid)
+    cell_size = 600 // max(mdp_grid.num_rows, mdp_grid.num_cols)
 
-q_learn_agent = QLearningAgent(rl_grid)
+    for i in range(mdp_grid.k):
+        value_iter_agent.iterate_values()
+        if i in mdp_queries:
+            result_mdp_grids[i] = deepcopy(value_iter_agent)
 
-cell_size = 600 // max(mdp_grid.num_rows, mdp_grid.num_cols)
+    print("value iter done")
 
-for i in range(mdp_grid.k):
-    value_iter_agent.iterate_values(0)
-    if i in mdp_queries:
-        result_mdp_grids[i] = deepcopy(value_iter_agent)
+    while q_learn_agent.curr_episode < 3500:
+        q_learn_agent.q_learn()
+        if q_learn_agent.curr_episode in rl_queries:
+            result_rl_grids[q_learn_agent.curr_episode] = deepcopy(q_learn_agent)
 
-print("value iter done")
+    print("q learning done")
 
-while q_learn_agent.episodes < 3500:
-    q_learn_agent.q_learn()
-    if q_learn_agent.episodes in rl_queries:
-        result_rl_grids[q_learn_agent.episodes] = deepcopy(q_learn_agent)
+    for episode in mdp_queries:
+        for row, col, query in mdp_queries[episode]:
+            game = Visualizer(cell_size, result_mdp_grids[episode])
+            game.display()
 
-
-print("q learning done")
-
-
-for episode in mdp_queries:
-    for row, col, query in mdp_queries[episode]:
-        game = Visualizer(cell_size, result_mdp_grids[episode])
-        game.display()
-
-for episode in rl_queries:
-    for row, col, query in rl_queries[episode]:
-        game = Visualizer(cell_size, result_rl_grids[episode])
-        game.display()
+    for episode in rl_queries:
+        for row, col, query in rl_queries[episode]:
+            game = Visualizer(cell_size, result_rl_grids[episode])
+            game.display()
 
 
-
-
-# game = Visualizer(
-#     cell_size, value_iter_agent)
-
-# game.display()
-
-# print("DONE!!! game 1")
-
-# game2 = Visualizer(
-#     cell_size, q_learn_agent)
-# game2.display()
+if __name__ == '__main__':
+    main()
