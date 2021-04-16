@@ -17,7 +17,8 @@ class ValueIterationAgent:
         grid                The grid that the agent will be working with when learning
         discount            The discount value
         noise               The likelihood the robot won't end up where it's going
-        max_display_val     TODO: again no idea what this does
+        max_display_val     keeps track of the maximum terminal value for 
+                            darker/lighter GUI colors
     """
 
     def __init__(self, input_grid: Grid):
@@ -71,8 +72,6 @@ class ValueIterationAgent:
                         if state.q_values[key] > max_q_value:
                             max_q_value = state.q_values[key]
                             best_action = key
-                        # if self.max_display_val < abs(state.q_values[key]):
-                        #    self.max_display_val = abs(state.q_values[key])
                     state.max_q_value = max_q_value
                     state.best_action = best_action
 

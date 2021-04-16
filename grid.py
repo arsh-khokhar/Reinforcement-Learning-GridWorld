@@ -95,6 +95,8 @@ class Grid:
         alpha                   Value of alpha
         states                  Multidimensional array of state objects, that
                                 represent the grid.
+        max_terminal_val        keeps track of the maximum terminal value for 
+                                darker/lighter GUI colors
     """
 
     def __init__(self, filename):

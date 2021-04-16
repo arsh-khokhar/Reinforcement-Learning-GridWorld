@@ -18,7 +18,8 @@ class QLearningAgent:
         discount            The discount value
         noise               The likelihood the robot won't end up where it's going
         alpha               The discount alpha
-        max_display_val     TODO: again no idea what this does
+        max_display_val     keeps track of the maximum terminal value for 
+                            darker/lighter GUI colors
         curr_episode        The number of the current episdoe
     """
 
@@ -51,8 +52,6 @@ class QLearningAgent:
                 if state.q_values[key] > max_q_value:
                     max_q_value = state.q_values[key]
                     best_action = key
-                # if self.max_display_val < abs(state.q_values[key]):
-                #    self.max_display_val = abs(state.q_values[key])
             return max_q_value, best_action
         return 0.0, None
 
