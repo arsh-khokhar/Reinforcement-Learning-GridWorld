@@ -13,6 +13,7 @@ from enum import Enum
 from pygame.locals import *
 from grid import Action
 from value_iteration_agent import ValueIterationAgent
+from q_learning_agent import QLearningAgent
 
 
 class GridColours(Enum):
@@ -344,8 +345,23 @@ class Visualizer:
                     self.grid_rect, GridColours.blue.value, highlight_rect, 4)
 
             if query:
-                query_text_to_show = "Query: {},{},{}".format(
-                    highlight_cell[0], highlight_cell[1], query)
+                if query == 'stateValue':
+                    query_text_to_show = "Query: {},{},{} = {:.2f}".format(
+                        highlight_cell[0], highlight_cell[1], query,
+                        self.agent.grid.states[highlight_cell[0]][highlight_cell[1]].max_q_value)
+                elif query == 'bestQValue':
+                    query_text_to_show = "Query: {},{},{} = {:.2f}".format(
+                        highlight_cell[0], highlight_cell[1], query,
+                        self.agent.find_max_q_value(highlight_cell[0], highlight_cell[1])[0])
+                elif query == 'bestPolicy' and type(self.agent) is ValueIterationAgent:
+                    query_text_to_show = "Query: {},{},{} = {}".format(
+                        highlight_cell[0], highlight_cell[1], query,
+                        self.agent.grid.states[highlight_cell[0]][highlight_cell[1]].best_action)
+                elif query == 'bestPolicy' and type(self.agent) is QLearningAgent:
+                    query_text_to_show = "Query: {},{},{} = {}".format(
+                        highlight_cell[0], highlight_cell[1], query,
+                        self.agent.find_max_q_value(highlight_cell[0], highlight_cell[1])[1])
+
 
             elif self.is_interactive:
                 if self.is_value_iter_agent:
