@@ -56,14 +56,19 @@ class Visualizer:
         self.cell_width = int(w // self.num_cols)
         self.cell_size = int(h // self.num_rows)
 
+        # setting up the display parameters
         self.font_size = int(self.cell_width // 5)
         self.grid_width = self.cell_width * self.num_cols
         self.grid_height = self.cell_size * self.num_rows
         self.window_width = int(self.grid_width*1.1)
         self.window_height = int(self.grid_height*1.35)
+
+        # grid drawing surface
         self.grid_rect = pygame.Surface(
             (self.grid_width, self.grid_height))
         self.grid_rect.get_rect().center = (self.window_width // 2, 0)
+
+        # background drawing surface
         self.background = pygame.display.set_mode(
             (self.window_width, self.window_height))
 
@@ -84,8 +89,14 @@ class Visualizer:
             for i, state in enumerate(row):
                 rect = pygame.Rect(
                     i*self.cell_width, j*self.cell_size, self.cell_width, self.cell_size)
-                color = (int(180 * abs(state.max_q_value) / self.agent.max_display_val), 0,
-                         0) if state.max_q_value < 0 else (0, int(180 * abs(state.max_q_value) / self.agent.max_display_val), 0)
+                normalized = int(180*abs(state.max_q_value) /
+                                 self.agent.max_display_val)
+                # clamping the normalized value
+                normalized = min(max(normalized, 0), 255)
+
+                # setting red/green color based on positive/negative values
+                color = (normalized, 0, 0) if state.max_q_value < 0 else (
+                    0, normalized, 0)
                 pygame.draw.rect(self.grid_rect, color, rect)
                 pygame.draw.rect(
                     self.grid_rect, GridColours.white.value, rect, 1)
@@ -153,10 +164,16 @@ class Visualizer:
         font = pygame.font.SysFont(
             self.font, int(self.font_size*0.65), bold=True)
         normalized = int(180*abs(value) / self.agent.max_display_val)
+
+        # clamping the normalized value
         normalized = min(max(normalized, 0), 255)
+
+        # setting red/green color based on positive/negative values
         color = (normalized, 0, 0) if value < 0 else (0, normalized, 0)
+        # filled triangle for the q-value
         pygame.draw.polygon(
             self.grid_rect, color, points)
+        # triangle border
         pygame.draw.polygon(
             self.grid_rect, GridColours.white.value, points, 1)
         q_val_text = font.render('{:.2f}'.format(
@@ -180,6 +197,7 @@ class Visualizer:
                         self.grid_rect, GridColours.grey.value, rect)
                     continue
 
+                # getting the necessary points for triangles
                 top_left = (i*self.cell_width, j*self.cell_size)
                 top_right = ((i+1)*self.cell_width, j*self.cell_size)
                 bottom_left = (i*self.cell_width, (j+1)*self.cell_size)
@@ -216,7 +234,10 @@ class Visualizer:
                             self.font, self.font_size, bold=True)
                         normalized = int(180*abs(q_value) /
                                          self.agent.max_display_val)
+                        # clamping the normalized value
                         normalized = min(max(normalized, 0), 255)
+
+                        # setting red/green color based on positive/negative values
                         color = (normalized, 0, 0) if q_value < 0 else (
                             0, normalized, 0)
                         q_val_text = font.render('{:.2f}'.format(
@@ -267,8 +288,10 @@ class Visualizer:
         to_draw_ptr = self.draw_values if self.is_value_iter_agent else self.draw_q_values
 
         while True:
-            robot_row = self.agent.grid.robot_curr_location[0]
-            robot_col = self.agent.grid.robot_curr_location[1]
+            if self.is_interactive:
+                # robot is only drawn when interactive
+                robot_row = self.agent.grid.robot_curr_location[0]
+                robot_col = self.agent.grid.robot_curr_location[1]
             self.clear()
             to_draw_ptr()
             for event in pygame.event.get():
@@ -313,6 +336,7 @@ class Visualizer:
                         to_draw_ptr = self.draw_q_values if to_draw_ptr == self.draw_values else self.draw_values
 
             if not self.is_value_iter_agent and self.is_interactive:
+                # draw the robot for interactive q-learning GUI
                 pygame.draw.circle(self.grid_rect, GridColours.blue.value,
                                    ((robot_col+0.5)*self.cell_width,
                                     (robot_row+0.5)*self.cell_size),
@@ -323,7 +347,7 @@ class Visualizer:
                 self.agent.get_display_index(), to_draw_ptr), True, GridColours.white.value)
             iteration_rect = iteration_text.get_rect()
             iteration_rect.center = (
-                self.window_width // 2, self.grid_height*1.125)
+                self.window_width // 2, self.grid_height*1.15)
 
             param_text = font.render(param_str, True, GridColours.white.value)
             param_text2 = font.render(
@@ -332,11 +356,12 @@ class Visualizer:
             param_rect2 = param_text2.get_rect()
 
             param_rect.center = (
-                self.window_width // 2, self.grid_height*1.125+self.font_size)
+                self.window_width // 2, self.grid_height*1.15+self.font_size)
             param_rect2.center = (
-                self.window_width // 2, self.grid_height*1.125+2*self.font_size)
+                self.window_width // 2, self.grid_height*1.15+2*self.font_size)
 
             if highlight_cell:
+                # cell to highlight for the query
                 highlight_rect = pygame.Rect(
                     highlight_cell[1] *
                     self.cell_width, highlight_cell[0]*self.cell_size,
@@ -362,8 +387,8 @@ class Visualizer:
                         highlight_cell[0], highlight_cell[1], query,
                         self.agent.find_max_q_value(highlight_cell[0], highlight_cell[1])[1])
 
-
             elif self.is_interactive:
+                # show controls if interactive
                 if self.is_value_iter_agent:
                     query_text_to_show = "Controls: V: iterate values, SPACE: toggle Values and Q-Values"
                 else:
@@ -373,11 +398,13 @@ class Visualizer:
                 query_text_to_show, True, GridColours.blue.value)
             query_rect = query_text.get_rect()
             query_rect.center = (
-                self.window_width // 2, self.grid_height*1.125+3*self.font_size)
+                self.window_width // 2, self.grid_height*1.15+3*self.font_size)
             self.background.blit(query_text, query_rect)
 
+            # flipping to set (0,0)  in the bottom left corner
             flipped = pygame.transform.flip(self.grid_rect, False, True)
 
+            # drawing all the components on the background
             self.background.blit(
                 flipped, (self.window_width // 2 - self.grid_width // 2, 50))
             self.background.blit(iteration_text, iteration_rect)
