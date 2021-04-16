@@ -8,7 +8,7 @@ First, you'll need to install the requirements. To do so, use `pip install -r re
 
 To run the program with default files (gridConf.txt) and (results.txt), use `python main.py`.
 This will run all of the episodes and iterations for both q learning and value iteration.
-Afterwards it will open up of the gui windows, showing the answer to each of the queries in results.txt one by one.
+Afterwards it will open up all of the gui windows, showing the answer to each of the queries in results.txt one by one.
 To go from one query to the next, close the current gui window. This will open another gui window, with the next query.
 
 ### Optional arguments
