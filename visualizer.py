@@ -254,8 +254,8 @@ class Visualizer:
         """
         Display the GUI
 
-        :param highlight_cell: cell to highlight in the grid if results
-        :param query: Indicates if the visualizer is interactive
+        :param highlight_cell: cell to highlight in the grid based on a query
+        :param query: query related to the grid based on a query
         """
         pygame.init()
         param_str = "Discount: {} Transition cost: {}".format(
