@@ -342,12 +342,12 @@ class Visualizer:
                                     (robot_row+0.5)*self.cell_size),
                                    0.125*self.cell_size)
             font = pygame.font.SysFont(
-                self.font, self.font_size, bold=True)
+                self.font, 20, bold=True)
             iteration_text = font.render(self.get_text_to_show(
                 self.agent.get_display_index(), to_draw_ptr), True, GridColours.white.value)
             iteration_rect = iteration_text.get_rect()
             iteration_rect.center = (
-                self.window_width // 2, self.grid_height*1.15)
+                self.window_width // 2, self.grid_height*1.125)
 
             param_text = font.render(param_str, True, GridColours.white.value)
             param_text2 = font.render(
@@ -356,9 +356,9 @@ class Visualizer:
             param_rect2 = param_text2.get_rect()
 
             param_rect.center = (
-                self.window_width // 2, self.grid_height*1.15+self.font_size)
+                self.window_width // 2, self.grid_height*1.125 + 18)
             param_rect2.center = (
-                self.window_width // 2, self.grid_height*1.15+2*self.font_size)
+                self.window_width // 2, self.grid_height*1.125 + 36)
 
             if highlight_cell:
                 # cell to highlight for the query
@@ -398,7 +398,7 @@ class Visualizer:
                 query_text_to_show, True, GridColours.blue.value)
             query_rect = query_text.get_rect()
             query_rect.center = (
-                self.window_width // 2, self.grid_height*1.15+3*self.font_size)
+                self.window_width // 2, self.grid_height*1.125+54)
             self.background.blit(query_text, query_rect)
 
             # flipping to set (0,0)  in the bottom left corner

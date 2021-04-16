@@ -21,7 +21,7 @@ With the command `python main.py`, you can use the following arguments for loadi
 - --grid GRID Use a custom grid file
 - --results RESULTS Use a custom result file
 
-A sample command with interactive Reinforcement learning grid and custom files: `python main.py --interactive_rl --grid=customGrid.txt results=customResults.txt`
+A sample command with interactive Reinforcement learning grid and custom files: `python main.py --interactive_rl --grid=customGrid.txt --results=customResults.txt`
 
 ### Controls for interactive grids
 
