@@ -50,10 +50,10 @@ def main():
     parser = argparse.ArgumentParser(description='Grid world')
 
     parser.add_argument('--interactive_rl',
-                        help='Launch interative reinforcement learning grid', default=False, action="store_true")
+                        help='Launch interactive reinforcement learning grid', default=False, action="store_true")
 
     parser.add_argument('--interactive_mdp',
-                        help='Launch interative MDP grid', default=False, action="store_true")
+                        help='Launch interactive MDP grid', default=False, action="store_true")
 
     parser.add_argument(
         '--grid', help='Use a custom grid file', type=str)
