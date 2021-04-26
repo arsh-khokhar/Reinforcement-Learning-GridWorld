@@ -1,4 +1,6 @@
-### Authors: Arsh Khokhar (7833350), Kiernan Wiese (7813635)
+# Reinforcement Learning and Value Iteration - Grid World
+
+This project allows to visualize the Q-Learning and Value Iteration based learning for a Robot deployed in a grid. While the value iteration allows the robot to learn optimal policy in an offline manner, Q-Learning is online, where Robot learns the optimal policy with experience.
 
 ### Requirements
 
